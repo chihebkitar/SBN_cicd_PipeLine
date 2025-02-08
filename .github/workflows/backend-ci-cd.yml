@@ -123,4 +123,5 @@ jobs:
         run: npm install -g @railway/cli
 
       - name: Redeploy Docker Service
-        run: railway redeploy # Just use railway redeploy with no arguments
+        run: railway service redeploy "book-network-backend"
+           
