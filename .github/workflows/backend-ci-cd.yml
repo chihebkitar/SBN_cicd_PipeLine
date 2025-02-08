@@ -129,4 +129,4 @@ jobs:
       - name: Redeploy Docker Service
         run: |
           # Replace 'book-network-backend' with EXACT service name in your Railway project
-          railway service redeploy --serviceName "book-network-backend"
+          railway service redeploy -- --serviceName "book-network-backend"
