@@ -128,4 +128,4 @@ jobs:
           # NOTE: 
           #   1) This is a project-scoped token if you only want to do project-level ops
           #   2) "book-network-backend" must match your Docker-based service name
-          railway service redeploy -- --service "book-network-backend"
+          railway service redeploy -- --book-network-backend
