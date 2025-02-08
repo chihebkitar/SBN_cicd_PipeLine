@@ -137,8 +137,4 @@ jobs:
           #    If your Railway service is a Docker deployment referencing 
           #    Docker Hub image, you might just trigger a redeploy:
           railway up
-          #
-          # Alternatively, you can define a 'railway.json' or Dockerfile approach 
-          # inside the project. If your project is set up to read from your Docker 
-          # Hub container automatically, 'railway up' will trigger a new deploy 
-          # using the updated image.
+        
