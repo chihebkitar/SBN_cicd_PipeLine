@@ -68,17 +68,17 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v2
+        uses: github/codeql-action/init@v3
         with:
           languages: java
 
       # Build code (same as in CI, but let's do 'autobuild' for convenience)
       - name: Autobuild
-        uses: github/codeql-action/autobuild@v2
+        uses: github/codeql-action/autobuild@v3
 
       # Analyze code
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v2
+        uses: github/codeql-action/analyze@v3
 
   # -----------------------------------------------------
   # 3) Build & Scan Docker Image + Push to Docker Hub
@@ -126,15 +126,8 @@ jobs:
       - name: Install Railway CLI
         run: npm install -g @railway/cli
 
-      - name: Deploy via Railway
-        run: |
-          # 1) Authenticate using RAILWAY_TOKEN (stored in GitHub secrets)
-          railway login --token ${{ secrets.RAILWAY_TOKEN }}
-
-          # 2) Link to your existing Railway project (if needed):
-          #    railway link --project ${{ secrets.RAILWAY_PROJECT_ID }}
-
-          # 3) Set Docker image environment variable (or do it from the Railway dashboard).
-          #    If your Railway service is a Docker deployment referencing 
-          #    Docker Hub image, you might just trigger a redeploy:
-          railway up
+      - name: Deploy to Railway
+        uses: bervProject/railway-deploy@main
+        with:
+            railway_token: ${{ secrets.RAILWAY_TOKEN }}
+            service: SBN_cicd_PipeLine
