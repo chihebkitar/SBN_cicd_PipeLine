@@ -27,12 +27,15 @@ jobs:
           java-version: '17'
           cache: 'maven'
 
-      # Step C: Build & Test (includes OWASP dependency-check, Jacoco coverage)
+      # Step C: Build & Test (runs OWASP dependency-check, Jacoco coverage, etc.)
       - name: Build & Test
         run: |
           mvn clean verify
-          # - Runs unit tests, integration tests, coverage
-          # - Runs OWASP dependency-check from your pom.xml
+          # "verify" triggers the full lifecycle:
+          # - Unit tests
+          # - Integration tests (if any)
+          # - Code coverage (JaCoCo)
+          # - OWASP dependency-check from your pom.xml
 
       # Step D: Upload test results & coverage reports
       - name: Archive Test Results
@@ -58,7 +61,7 @@ jobs:
     permissions:
       actions: read
       contents: read
-      security-events: write
+      security-events: write  # Required for uploading results
     steps:
       - name: Check out code
         uses: actions/checkout@v3
@@ -80,7 +83,7 @@ jobs:
   docker-build-scan-push:
     name: Docker Build, Scan, and Push
     runs-on: ubuntu-latest
-    needs: [build-test-scan]  # Only after tests pass
+    needs: [build-test-scan]
     steps:
       - name: Check out code
         uses: actions/checkout@v3
@@ -96,10 +99,8 @@ jobs:
           severity: 'CRITICAL'
           exit-code: 1
           ignore-unfixed: true
-        # Explanation:
-        # - We fail the pipeline if there's at least one CRITICAL vulnerability
-        # - 'ignore-unfixed: true' means we skip CVEs with no known fix
-        #   (You can set false for a stricter approach)
+        # exit-code: 1 => fail if CRITICAL vulnerabilities found
+        # ignore-unfixed: true => skip CVEs with no known fix
 
       - name: Docker Login
         run: |
@@ -121,13 +122,11 @@ jobs:
       - name: Install Railway CLI
         run: npm install -g @railway/cli
 
-      # Redeploy your Docker-based service on Railway
+      - name: Railway Login
+        run: echo "${{ secrets.RAILWAY_TOKEN }}" | railway login
+
       - name: Redeploy Docker Service
         run: |
-          railway login --token ${{ secrets.RAILWAY_TOKEN }}
-          # If needed, link to your project if you have a PROJECT_ID:
-          # railway link --project ${{ secrets.RAILWAY_PROJECT_ID }}
-
-          # Redeploy the Docker-based service so it pulls the latest image from Docker Hub.
-          # Replace 'my-backend-service' with the EXACT name of your Railway service
+          # Replace 'SBN_cicd_PipeLine' with the EXACT name 
+          # of your Docker-based service in Railway
           railway service redeploy --serviceName "book-network-backend"
