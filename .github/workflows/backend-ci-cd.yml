@@ -96,7 +96,7 @@ jobs:
           docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/book-network-backend:latest .
 
       - name: Trivy Scan
-        uses: aquasecurity/trivy-action@v0.11.2
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: ${{ secrets.DOCKER_HUB_USERNAME }}/book-network-backend:latest
           format: 'table'
