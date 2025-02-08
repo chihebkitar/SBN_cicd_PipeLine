@@ -114,19 +114,14 @@ jobs:
   deploy:
     name: Deploy to Railway
     runs-on: ubuntu-latest
-    needs: [docker-build-scan-push]
+    needs: [ docker-build-scan-push ]
 
     steps:
       - name: Install Railway CLI
         run: npm install -g @railway/cli
 
-      # Create ~/.railway/config.json with your token so the CLI is "logged in"
-      - name: Configure Railway Auth
-        run: |
-          mkdir -p ~/.railway
-          echo '{"tokens":{"prod":"'"${{ secrets.RAILWAY_TOKEN }}"'"}}' > ~/.railway/config.json
-
       - name: Redeploy Docker Service
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
-          # Replace 'book-network-backend' with EXACT service name in your Railway project
-          railway service redeploy -- --serviceName "book-network-backend"
+          railway service redeploy --serviceName "book-network-backend"
