@@ -120,12 +120,12 @@ jobs:
       - name: Install Railway CLI
         run: npm install -g @railway/cli
 
-      # Use a project token in RAILWAY_TOKEN, so no interactive login is needed
       - name: Redeploy Docker Service
         env:
+          # Must be a project-scoped token for the project containing 'book-network-backend'
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: |
-          # NOTE: 
-          #   1) This is a project-scoped token if you only want to do project-level ops
-          #   2) "book-network-backend" must match your Docker-based service name
-          railway service redeploy -- --book-network-backend
+          # Use the latest CLI approach:
+          #    railway redeploy -s <serviceName> -y
+          #    ^ `-y` is optional but skips interactive confirmation
+          railway redeploy -s "book-network-backend" -y
