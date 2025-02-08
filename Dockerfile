@@ -20,7 +20,7 @@ FROM eclipse-temurin:17-jre
 WORKDIR /app
 
 # Copy only the jar from the builder stage
-COPY --from=builder /app/target/book-network-api-0.0.1-SNAPSHOT.jar app.jar
+COPY --from=builder /app/target/book-network-0.0.1-SNAPSHOT.jar app.jar
 
 # Container listens on port 8088
 EXPOSE 8088
