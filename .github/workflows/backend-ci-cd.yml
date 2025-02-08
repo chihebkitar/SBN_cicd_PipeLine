@@ -27,15 +27,12 @@ jobs:
           java-version: '17'
           cache: 'maven'
 
-      # Step C: Build & Test (runs OWASP dependency-check, Jacoco coverage, etc.)
+      # Step C: Build & Test (includes OWASP dependency-check, Jacoco coverage)
       - name: Build & Test
         run: |
           mvn clean verify
-          # "verify" triggers the full lifecycle:
-          # - Unit tests
-          # - Integration tests (if any)
-          # - Code coverage (JaCoCo)
-          # - OWASP dependency-check from your pom.xml
+          # - Runs unit tests, integration tests, coverage
+          # - Runs OWASP dependency-check from your pom.xml
 
       # Step D: Upload test results & coverage reports
       - name: Archive Test Results
@@ -54,7 +51,6 @@ jobs:
 
   # -----------------------------------------------------
   # 2) SAST Job: CodeQL Analysis
-  # (Runs in parallel or after the build. Recommended for security.)
   # -----------------------------------------------------
   codeql:
     name: CodeQL Analysis
@@ -62,7 +58,7 @@ jobs:
     permissions:
       actions: read
       contents: read
-      security-events: write  # Required for uploading results
+      security-events: write
     steps:
       - name: Check out code
         uses: actions/checkout@v3
@@ -72,11 +68,9 @@ jobs:
         with:
           languages: java
 
-      # Build code (same as in CI, but let's do 'autobuild' for convenience)
       - name: Autobuild
         uses: github/codeql-action/autobuild@v3
 
-      # Analyze code
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
 
@@ -86,7 +80,7 @@ jobs:
   docker-build-scan-push:
     name: Docker Build, Scan, and Push
     runs-on: ubuntu-latest
-    needs: [build-test-scan]  # Only run if Build & Test passes
+    needs: [build-test-scan]  # Only after tests pass
     steps:
       - name: Check out code
         uses: actions/checkout@v3
@@ -102,10 +96,10 @@ jobs:
           severity: 'CRITICAL'
           exit-code: 1
           ignore-unfixed: true
-
-        # 'exit-code: 1' => fail if vulnerabilities found.
-        # 'ignore-unfixed: false' => be strict about CVEs.
-        #   You can set true if you want to ignore vulnerabilities with no known fix
+        # Explanation:
+        # - We fail the pipeline if there's at least one CRITICAL vulnerability
+        # - 'ignore-unfixed: true' means we skip CVEs with no known fix
+        #   (You can set false for a stricter approach)
 
       - name: Docker Login
         run: |
@@ -116,18 +110,24 @@ jobs:
           docker push ${{ secrets.DOCKER_HUB_USERNAME }}/book-network-backend:latest
 
   # -----------------------------------------------------
-  # 4) Deploy to Railway
+  # 4) Deploy to Railway (Docker-based Service)
   # -----------------------------------------------------
   deploy:
     name: Deploy to Railway
     runs-on: ubuntu-latest
     needs: [docker-build-scan-push]
+
     steps:
       - name: Install Railway CLI
         run: npm install -g @railway/cli
 
-      - name: Deploy to Railway
-        uses: bervProject/railway-deploy@main
-        with:
-            railway_token: ${{ secrets.RAILWAY_TOKEN }}
-            service: SBN_cicd_PipeLine
+      # Redeploy your Docker-based service on Railway
+      - name: Redeploy Docker Service
+        run: |
+          railway login --token ${{ secrets.RAILWAY_TOKEN }}
+          # If needed, link to your project if you have a PROJECT_ID:
+          # railway link --project ${{ secrets.RAILWAY_PROJECT_ID }}
+
+          # Redeploy the Docker-based service so it pulls the latest image from Docker Hub.
+          # Replace 'my-backend-service' with the EXACT name of your Railway service
+          railway service redeploy --serviceName "book-network-backend"
